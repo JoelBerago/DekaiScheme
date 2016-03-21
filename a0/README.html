@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+      "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <title>COMP2012H Programming Assignment 0, Fall 2014</title>
+</head>
+
+<body>
+<h1>COMP2012H Programming Assignment 0, Fall 2014</h1>
+
+<p><strong>Author:</strong> <a href="http://www.cs.ust.hk/~dekai/">Dekai
+Wu</a></p>
+
+<p><strong>Date:</strong> Due 2014.09.16 at 23:00 by CASS</p>
+
+<p><strong>Download:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a0.tar.gz">http://www.cs.ust.hk/~dekai/2012H/assignments/a0.tar.gz</a></p>
+
+<p><strong>Assignment page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a0/html/">http://www.cs.ust.hk/~dekai/2012H/assignments/a0/html/</a></p>
+
+<p><strong>Course page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/">http://www.cs.ust.hk/~dekai/2012H/</a></p>
+
+<h3>Your assignment</h3>
+
+<p>You've been assigned to implement a <em>linked list</em> data structure.
+Specifically, you will implement a simple library supporting <a
+href="https://en.wikipedia.org/wiki/Linked_list#Singly_linked_list"><em>singly
+linked lists</em></a>, which other programs will then use for purposes that you
+do not have to care about.</p>
+
+<p>If there is ever any error in the way that your library is used, your
+library functions should print the string <tt>ERROR</tt> on standard error
+(<tt>cerr &lt;&lt; "ERROR"</tt>), and call <tt>exit(1)</tt> to terminate
+program execution.</p>
+
+<p>As a starting point, you are being given top-level requirements in the form
+of a skeleton implmentation containing the desired API and certain required
+details of the implementation approach. Download the package at the top of this
+page, then:</p>
+
+<p><tt>$ tar xzf a0.tar.gz</tt> <i>// unpack the archive</i><br />
+<tt>$ cd a0</tt><br />
+<tt>$ make</tt><br />
+<tt>g++ -c main.cpp -o main.o</tt><br />
+<tt>g++ -c linkedlist.cpp -o linkedlist.o</tt><br />
+<tt>g++ main.o linkedlist.o -o main</tt><br />
+<tt>$ main</tt><br />
+<tt>Bus error: 10</tt></p>
+
+<p>You will see the test program crash, since you haven't
+implemented the library functions yet; only dummy functions are in the code
+you've been given.</p>
+
+<p>You'll need to implement:</p>
+<ul>
+  <li><tt>Cell* make_int(const int i)</tt> returns a newly constructed int
+    cell, i.e., a leaf node initialized to hold the int value <tt>i</tt></li>
+  <li><tt>Cell* make_double(const double d)</tt> returns a newly constructed
+    double cell, i.e., a leaf node initialized to hold the double value
+    <tt>d</tt></li>
+  <li><tt>Cell* make_symbol(const char* const s)</tt> returns a newly
+    constructed symbol cell, i.e., a leaf node initialized to hold the symbol
+    name <tt>s</tt></li>
+  <li><tt>Node* make_node(Cell* const my_elem, Node* const my_next)</tt>
+    returns a newly constructed linked list node, i.e., a node initialized to
+    hold the two pointers <tt>my_elem</tt> and <tt>my_next</tt></li>
+</ul>
+<ul>
+  <li><tt>bool intp(Cell* const c)</tt> returns true iff the cell pointed to by
+    <tt>c</tt> is an int cell</li>
+  <li><tt>bool doublep(Cell* const c)</tt> returns true iff the cell pointed to
+    by <tt>c</tt> is a double cell</li>
+  <li><tt>bool symbolp(Cell* const c)</tt> returns true iff the cell pointed to
+    by <tt>c</tt> is a symbol cell</li>
+</ul>
+<ul>
+  <li><tt>int get_int(Cell* const c)</tt> returns the value in the int cell
+    pointed to by <tt>c</tt> (error if <tt>c</tt> is not an int cell)</li>
+  <li><tt>double get_double(Cell* const c)</tt> returns the value in the double
+    cell pointed to by <tt>c</tt> (error if <tt>c</tt> is not a double
+  cell)</li>
+  <li><tt>string get_symbol(Cell* const c)</tt> returns the value in the string
+    cell pointed to by <tt>c</tt> (error if <tt>c</tt> is not a string
+  cell)</li>
+  <li><tt>Cell* get_elem(Node* const n)</tt> returns a pointer to the data held
+    by this node n</li>
+  <li><tt>Cell* get_next(Node* const n)</tt> returns a pointer to the next node
+    in the linked list</li>
+</ul>
+<ul>
+  <li><tt>ostream&amp; operator&lt;&lt;(ostream&amp; os, Node* const n)</tt>
+    prints the list pointed to by <tt></tt> 
+    <p><tt></tt> to the output stream <tt>os</tt>, in parentheses</p>
+  </li>
+</ul>
+
+<p>Notice that even though these are just ordinary functions (not member
+functions of a class), nevertheless this set of functions constitutes an
+interface for an abstract data type; we'll discuss more background on this
+particular ADT below. The way that <tt>Cell.hpp</tt> specifies the ADT
+interface is nice because it makes very few assumptions about how the concrete
+implementation might be done. (Good object-oriented programming style does
+<em>not</em> necessarily require using classes! For example, see Scott Myer's
+article <a href="http://www.ddj.com/dept/cpp/184401197">How Non-Member
+Functions Improve Encapsulation</a>.)</p>
+
+<p>The file that you received just connects all the functions to a dummy
+example implementation of the ADT that makes use of a super-simple, incomplete
+<tt>Cell</tt> class. This dummy example implementation isn't actually capable
+of building a list data structure with pointers and nodes.</p>
+
+<h3>Implementing the linked list ADT</h3>
+
+<p>In this assignment, cells can hold three kinds of data: int, double, and
+symbol. You need a way to store any of these types of values in your cells. How
+do you do this efficiently?</p>
+
+<p>The obvious naive way is just to have four data members:</p>
+<pre>struct Cell {
+  // ...
+  int int_m;
+  double double_m; 
+  char* symbol_m;
+};</pre>
+
+<p>But this is a terribly inefficient waste of memory. Any instance of a
+<tt>Cell</tt> will only be using one of these data members. So a better way is
+to use a <em>union</em>:</p>
+<pre>struct Cell {
+  union {
+    int int_m;
+    double double_m; 
+    char* symbol_m;
+  };
+};</pre>
+
+<p>Unions exist in both C and C++. A union is sort of like a struct, except
+that a struct provides memory space to simultaneously store all its members,
+whereas a union provides memory space to store only one of its members at a
+time. So this way, we won't waste memory space.</p>
+
+<p>The only problem is: when you're using a union, how do you know
+<em>which</em> of the data members is the valid one? C++ won't tell you; it is
+your program's own responsibility to keep track of this. If you don't, you can
+easily create horrible bugs. For example:</p>
+
+<p><tt>Cell* c = new Cell;</tt><br />
+<tt>c-&gt;double_m = 2.718;</tt><br />
+<tt>cout &lt;&lt; c-&gt;int_m;</tt> <i>// whoops! will print out a garbage
+int</i><br />
+<tt>cout &lt;&lt; c-&gt;symbol_m;</tt> <i>// whoops! will either seg fault or
+do wildly unpredictable things</i></p>
+
+<p>To keep track of which member in the union is currently valid, you should
+use what's known as a <em>tagged union</em> or <em>discriminated union</em>
+approach:</p>
+<pre>struct Cell {
+  enum TypeTag {type_int, type_double, type_symbol};
+  TypeTag tag_m;
+  union {
+    int int_m;
+    double double_m; 
+    char* symbol_m;
+  };
+};</pre>
+
+<p>Now you can write your code so that you make sure that the <tt>tag_m</tt>
+always holds an up-to-date value indicating which of the union members is valid
+at the current time.</p>
+
+<h3>Important reminders</h3>
+
+<p>You must follow the design approach outlined in this document. Do
+<em>not</em> just implement the required functionality using a different
+design. Your proper <em>software engineering</em> skills are being graded.</p>
+
+<p>Do <em>not</em> use virtual functions or templates in this assignment. This
+assignment is about static OO support in C++. (You'll get a chance to use
+dynamic OO polymorphism and templates in the following assignments...)</p>
+
+<p>Do <em>not</em> edit the files <tt>Cell.hpp</tt>, <tt>Node.hpp</tt>, or
+<tt>linkedlist.hpp</tt>. The programming assignments are mini-exercises in how
+multiple programmers are supposed to interact and communicate in the real
+world; these files are <em>owned</em> and <em>maintained</em> by the other
+author(s).</p>
+
+<p>You may need to add things to <tt>Cell.hpp</tt>, but do <em>not</em> delete
+anything from it. Replace the files <tt>Cell.cpp</tt>, <tt>Node.cpp</tt> and
+<tt>linkedlist.cpp</tt> with your own implementations. Depending on your
+approach, you may or may not also wish to add more files.</p>
+
+<p>Depending on your approach, you may or may not need to change the
+<tt>Makefile</tt>. Whether you changed it or not, always make sure you include
+whatever <tt>Makefile</tt> is needed to build your program, when you submit the
+assignment. Otherwise, the graders cannot build your program.</p>
+
+<p>Documentation is also a critically important part of your software
+engineering. Your use of <tt>doxygen</tt> comments, as in Lab 3, will be
+graded.</p>
+
+<p>You must write the final version of the program on your own. Sophisticated
+plagiarism detection systems are in operation, and they are pretty good at
+catching copying! If you worked in study groups, you must also acknowledge your
+collaborators in the write-up for each problem, whether or not they are
+classmates. Other cases will be dealt with as plagiarism. Re-read the policy on
+the course home page, and note the University's tougher policy this year
+regarding cheating.</p>
+
+<p>Your programming style (how clearly and how well you speak C++) is what will
+be graded. Correct functioning of your program is necessary but not
+sufficient!</p>
+
+<h3>Grading scheme</h3>
+
+<p>Below is the <strong>grading sheet</strong> that will be used by the
+graders, so you can see what software engineering skills they're checking you
+for.</p>
+
+<p>Your grade consists of two parts: (1) <strong>program correctness</strong>,
+worth 60%. and (2) <strong>style &amp; design</strong>, worth 40%. Points are
+deducted for the error types as shown (but the minimum you can get for each
+part is 0%, so you cannot get negative point scores on either program
+correctness or style &amp; design).</p>
+
+<table border="1">
+  <tbody>
+    <tr>
+      <td><strong>Name:</strong> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td><strong>Email:</strong> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td><strong>Submission Time: </strong></td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td><strong>Late Penalty:</strong> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td><strong>Total Pts: </strong></td>
+      <td>                       / 100 Pts</td>
+    </tr>
+  </tbody>
+</table>
+
+<p></p>
+
+<table border="2">
+  <tbody>
+    <tr>
+      <td colspan="3"><strong>PROGRAM CORRECTNESS</strong> (Maximum: 60 Pts;
+        Minimum: 0 Pts)</td>
+    </tr>
+    <tr>
+      <td><em>Description</em></td>
+      <td><em>Pts</em></td>
+      <td><em>Notes</em></td>
+    </tr>
+    <tr>
+      <td>Base Pts. (+60 Pts)</td>
+      <td>         </td>
+      <td>                       </td>
+    </tr>
+    <tr>
+      <td>Program fails to compile. (-60 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Cell class fails (link against reference solution and run tests) (-60
+        Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>does not pass simple test cases. (-15 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>does not pass general test cases. (-15 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>does not handle semantically invalid cases. (-15 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Program prints irrelevant information. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Encapsulation (Min -40 Pts) 
+        <ul>
+          <li>Edited Cell.hpp, Node.hpp, or linkedlist.hpp. (-40 Pts)</li>
+          <li>Accessed functions in the Cell class directly. (-30 Pts)</li>
+        </ul>
+      </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Proper destruction (+10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>BONUS: Detailed error messages (+5 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td colspan="2"><strong>STYLE &amp; DESIGN</strong> (Maximum: 40 Pts;
+        Minimum: -100 Pts)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><em>Description</em></td>
+      <td><em>Pts</em></td>
+      <td><em>Notes</em></td>
+    </tr>
+    <tr>
+      <td>Base Pts. (+40 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>No Doxygen output. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Inadequate function level documentation. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Inadequate algorithm level (i.e. within function) documentation. (-15
+        Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Inadequate variable level documentation (i.e. meaning of the
+        variable). (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Poor readability of function and variable names. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Improper use of indentation and space. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Inconsistent naming of functions and variables. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Incorrect ‘const’ usage. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Improper private data encapsulation. (-10 Pts)</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+<hr />
+
+<p style="text-align: right"><i>Last updated: 2014.09.04 dekai</i></p>
+</body>
+</html>

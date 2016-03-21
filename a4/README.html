@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+      "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+  <title>COMP2012H Programming Assignment 4, Fall 2014</title>
+  <meta name="generator" content="amaya 9.51, see http://www.w3.org/Amaya/" />
+</head>
+
+<body>
+<h1>COMP2012H Programming Assignment 4, Fall 2014</h1>
+
+<p><strong>Author:</strong> <a href="http://www.cs.ust.hk/~dekai/">Dekai
+Wu</a></p>
+
+<p><strong>Date:</strong> Due 2014.11.13 at 23:00 by CASS</p>
+
+<p><strong>Download:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a4.tar.gz">http://www.cs.ust.hk/~dekai/2012H/assignments/a4.tar.gz</a></p>
+
+<p><strong>Assignment page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a4/html/">http://www.cs.ust.hk/~dekai/2012H/assignments/a4/html/</a></p>
+
+<p><strong>Course page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/">http://www.cs.ust.hk/~dekai/2012H/</a></p>
+
+<h3>Your assignment</h3>
+
+<p>In this fourth piece of your programming project, you are assigned to
+maintain and extend the micro-Scheme interpreter you've built in the previous assignments,
+specifically to add function values (by supporting <tt>lambda</tt>) and
+function application (by supporting standard Scheme expressions where the
+first element of the list is any function value, as well as by supporting
+explicit <tt>apply</tt> syntax).</p>
+
+<p>For this assignment, we are giving you almost no new code. The tarball
+a4.tar.gz contains exactly the same files as a3.tar.gz, except for (1) these
+instructions and (2) a slightly extended <tt>cons.hpp</tt> interface, in
+which we define an additional constructor <tt>lambda</tt>, along with a
+corresponding type testing predicate <tt>procedurep</tt>, plus corresponding
+accessors <tt>get_formals</tt> and <tt>get_body</tt>, and (3) a skeleton
+<tt>library.scm</tt> file that we'll describe in Step 3 below.</p>
+
+<h3>Step 1: Support lambda, to construct anonymous function values</h3>
+
+<p>A function is just another kind of value, like int, double, symbol,
+or cons values.  It must be possible to pass function values as
+parameters and return values, and so forth.</p>
+
+<p>To make a function value, we need a constructor that constructs a
+<tt>ProcedureCell</tt> holding the newly constructed function value.
+You might think this constructor should be called <tt>make_procedure</tt>
+(like <tt>make_int</tt> or <tt>make_symbol</tt>), but the historical
+convention is to call this constructor <tt>lambda</tt> instead. (This is
+analogous to the fact that <tt>cons</tt> is also really a constructor
+that you might think should have been called <tt>make_cons</tt> instead.)</p>
+
+<p>So you will add a new operator to your implementation, <tt>lambda</tt>,
+that allows construction of anonymous functions of zero or more arguments,
+as discussed in lecture:</p>
+
+<p><tt>&gt; (lambda (x y z) (* x y z))<br />
+#&lt;function&gt;<br />
+&gt; (define multiply (lambda (x y z) (* x y z)))<br />
+()<br />
+&gt; (define multiply-tracing (lambda (x y z) (print (quote multiplying..))
+(* x y z)))<br />
+()</tt></p>
+
+<p>When a <tt>lambda</tt> expression is evaluated, it should cause the
+<tt>lambda</tt> constructor in the newly extended <tt>cons.hpp</tt> interface
+to be called in order to construct a new <tt>ProcedureCell</tt> holding the
+new function value. (Remember, think of the <tt>lambda</tt> constructor just
+as if it were instead called <tt>make_procedure</tt>.)</p>
+
+<p>The behavior of <tt>lambda</tt> should exactly conform to <a
+href="http://www.schemers.org/Documents/Standards/R5RS/">Scheme
+R5RS</a>, as described in lecture. It requires two or more
+operands. The first operand must be a list of symbols (for instance
+<tt>(x y z)</tt> in the above example), which describes the formal
+parameters of the function.  The rest of the operands must be a
+sequence of expressions, describing the body of the function.</p>
+
+<p>You should store the list of arguments in the <tt>formals</tt> field of the
+<tt>ProcedureCell</tt>. You should store the list of expressions in the body
+(for instance <tt>((print (quote multiplying..)) (* x y z))</tt> in the above
+example) in the <tt>body</tt> field of the <tt>ProcedureCell</tt>.</p>
+
+<h3>Step 2: Support function application</h3>
+
+<p>You are now in a position to add the ability to apply the functions,
+whether anonymous or named. You should support both the normal Scheme syntax
+where the first element of the list is a function value, as well as explicit
+<tt>apply</tt> syntax:</p>
+
+<p><tt>&gt; ((lambda (x y) (+ x y)) 2 3)<br />
+5<br />
+&gt; (multiply 2 3 4)<br />
+24<br />
+&gt; (multiply-tracing 2 3 4)<br />
+multiplying..<br />
+24<br />
+&gt; (apply multiply (quote (2 3 4)))<br />
+24<br />
+&gt; (define apply-to-2-3-4 (lambda (f) (apply f (quote (2 3 4)))))<br />
+()<br />
+&gt; (apply-to-2-3-4 multiply)<br />
+24<br />
+&gt; ((quote multiply) 2 3 4)<br />
+ERROR: cannot apply a value that is not a function<br />
+&gt; (apply (quote multiply) (quote 2 3 4))<br />
+ERROR: cannot apply a value that is not a function<br />
+&gt; (apply-to-2-3-4 (quote multiply))<br />
+ERROR: cannot apply a value that is not a function</tt></p>
+
+<p>To accomplish this, you'll want to implement an additional virtual
+function <tt>apply()</tt> for <tt>Cell</tt> and its derived classes. In
+particular, the real work of applying a function should be done by <tt>Cell*
+ProcedureCell::apply(Cell* const args)</tt> where <tt>this</tt> points to a
+<tt>ProcedureCell</tt> holding the function to be applied, and <tt>args</tt>
+points to a list of values to be supplied as the arguments the function is
+being called with. You can then use your <tt>apply()</tt> to support both the
+normal Scheme syntax where the first element of the list is a function value,
+as well as the explicit <tt>apply</tt> syntax.</p>
+
+<p><em>All</em> expressions in the body must be eagerly evaluated, in
+left-to-right order. This guarantees that the program:</p>
+
+<p>The result of the last expression in the body must be returned as the result of the procedure call.</p>
+
+<p><tt>&gt; (define foo (lambda () (print (quote Hello)) (print (quote
+world)) (print (quote !!))))<br />
+()<br />
+&gt; (foo)<br />
+Hello<br />
+world<br />
+!!<br />
+()</tt></p>
+
+<p>will print out the desired words in order. (Also notice that in this
+example, the lambda expression constructs a function that takes zero
+arguments.)</p>
+
+<p>Similarly, <em>all</em> expressions in the argument list must be eagerly
+evaluated (but we leave the order of evaluation unspecified; that's your
+choice).</p>
+
+<p><em>Hint: Distinguish local versus global scope!</em> When you apply a
+lambda (i.e., apply a function), the parameter names become local variable
+names. When you are doing symbol name lookup, you need to make sure that
+local scope takes priority over global scope. First try to find the symbol
+name in the local symbol table; only if that fails, then try to find it in
+the global symbol table. For example:</p>
+
+<p><tt>&gt; (define z 3)<br />
+()<br />
+&gt; ((lambda (x) (+ x z)) 2)<br />
+5<br />
+&gt; (define x 4)<br />
+()<br />
+&gt; ((lambda (x) (+ x z)) 2)<br />
+5</tt></p>
+
+<p>Unlike in Assignment 3, you can no longer get away with just a single
+global symbol table. Since functions can call functions which can call
+functions (or even call recursively for an unbounded number of recursions),
+you will need a <em>stack</em> of symbol tables to keep proper track of
+<em>local</em> symbol tables. Consider, for example, the following
+<tt>factorial</tt> function that takes a single operand <em>n</em> of type
+<tt>int</tt>, and returns <em>n</em>! which is also of type <tt>int</tt>:</p>
+
+<p><tt>&gt; (define factorial (lambda (x) (if (&lt; x 2) 1 (* x (factorial (-
+x 1))))))<br />
+()<br />
+&gt; (factorial 1)<br />
+1<br />
+&gt; (factorial 4)<br />
+24<br />
+&gt; (factorial 10)<br />
+3628800</tt></p>
+
+<p>Whenever <tt>factorial</tt> is called, there is a new local variable
+<tt>x</tt> that must not be confused with either the global variable
+<tt>x</tt> or any other instances of local variables named <tt>x</tt>. For
+instance, <tt>(factorial 4)</tt> has a local variable <tt>x</tt> bound to 4,
+but when it calls <tt>(factorial 3)</tt> there will be a new local variable
+<tt>x</tt> bound to 3 that must not be confused with the local variable
+<tt>x</tt> associated with <tt>(factorial 4)</tt>.</p>
+
+<p>So to avoid that kind of confusion, every time a function is called, a new
+local symbol table must be pushed on the stack, containing all the parameter
+symbol names as the local variables for that function. Whenever execution of
+a function is finished, its local symbol table must be popped from the
+stack.</p>
+
+<p>Remember to review the examples in Assignments 1, 2, and 3 and make sure
+everything still works.</p>
+
+<h3>Step 3: Start implementing library functions using your own Scheme (not
+C++)</h3>
+
+<p>Congratulations!!</p>
+
+<p>You have now implemented your own fully <strong>Turing-equivalent</strong>
+programming language. In principle, you can now program anything using your
+micro-Scheme interpreter, and never have to use C++ again! More precisely, as
+<a href="http://en.wikipedia.org/wiki/Turing-complete">Wikipedia</a> puts it:
+<em>In computability theory, an abstract machine or programming language is
+called Turing complete, Turing equivalent, or (computationally) universal if
+it has a computational power equivalent to (i.e., capable of emulating) a
+simplified model of a programmable computer known as the universal Turing
+machine. Being equivalent to the universal Turing machine essentially means
+being able to perform any computational task &ndash; though it does not mean
+being able to perform such tasks efficiently, quickly, or easily... The term
+derives from the name of mathematician Alan Turing who introduced the model
+of the universal Turing machine.</em></p>
+
+<p>This means that from now on, you can implement the rest of your
+micro-Scheme programming language, using <em>only</em> micro-Scheme. We have
+used C++ to <strong>bootstrap</strong> your implementation of the
+micro-Scheme programming language, and the rest can be done in micro-Scheme
+itself. You don't have to use C++ any more (well, maybe for a few special
+purpose convenience items). Hurrah! COMP2012H is almost over, and we can start
+learning other interesting languages besides C++.</p>
+
+<p>You'll celebrate by using your interpreter to start implementing
+general-purpose library functions <strong>using your micro-Scheme
+language</strong> (not using C++). For example, the <tt>factorial</tt>
+function above is actually a real function in the standard Scheme
+specification, which you see you can implement in your own micro-Scheme
+instead of using C++. Similarly, the operators <tt>&gt;</tt>, <tt>&lt;=</tt>,
+<tt>&gt;=</tt>, <tt>=</tt>, and <tt>abs</tt> are all general-purpose library
+functions that you can implement as follows using your micro-Scheme language
+rather than C++, as follows (for simplicity, we're providing just the
+versions that take exactly two operands):</p>
+
+<p><tt>&gt; (define &gt; (lambda (x y) (&lt; y x)))<br />
+()<br />
+&gt; (&gt; 2 5)<br />
+0<br />
+&gt; (define &gt;= (lambda (x y) (not (&lt; x y))))<br />
+()<br />
+&gt; (&lt;= 3 2)<br />
+0<br />
+&gt; (define &lt;= (lambda (x y) (not (&lt; y x))))<br />
+()<br />
+&gt; (&lt;= 3 3)<br />
+1<br />
+&gt; (define = (lambda (x y) (if (&lt; x y) 0 (not (&lt; y x)))))<br />
+()<br />
+&gt; (= 2 2)<br />
+1<br />
+&gt; (= 2 3)<br />
+0<br />
+&gt; (= 3 2)<br />
+0<br />
+&gt; (define abs (lambda (x) (if (&lt; x 0) (- 0 x) x)))<br />
+()<br />
+&gt; (abs 3)<br />
+3<br />
+&gt; (abs -3)<br />
+3</tt></p>
+
+<p>Are you getting the hang of it yet?</p>
+
+<p>The required additional library function you will implement is
+<tt>for-each</tt>, which does something kind of similar to the STL
+<tt>for_each</tt> generic algorithm for C++ that we studied in lecture.</p>
+
+<p>Your <tt>for-each</tt> function should take two operands, where the first
+operand must be a function of one argument, and the second operand must be a
+list. It should apply the function to every element in the list. The return
+value of <tt>for-each</tt> is unspecified (so you could return <tt>()</tt>,
+for example).</p>
+
+<p><tt>(for-each</tt> <em>&lt;function&gt; &lt;list&gt;</em><tt>)</tt> </p>
+
+<p>For example:</p>
+
+<p><tt>&gt; (define square (lambda (x) (print (* x x))))<br />
+()<br />
+&gt; (for-each square (quote (2 5 9 14 256)))<br />
+4<br />
+25<br />
+81<br />
+196<br />
+65536<br />
+()</tt></p>
+
+<p>You can also consult <a
+href="http://www.schemers.org/Documents/Standards/R5RS/">Scheme R5RS</a> for
+details of <tt>for-each</tt>.</p>
+
+<p>Please feel free to implement any other general-purpose library functions
+you would like, just for fun. Some suggestions: the general <tt>map</tt> and
+<tt>reduce</tt> functions and the <tt>list</tt> function. These require you
+to have implemented the optional bonus support for a variable number of
+formal parameters for <tt>lambda</tt>, as described below.</p>
+
+<p>When you are finished, add <strong>all</strong> your Scheme library
+functions to the <tt>library.scm</tt> file where we've already placed the
+libary functions <tt>&gt;</tt>, <tt>&lt;=</tt>, <tt>&gt;=</tt>, <tt>=</tt>,
+<tt>abs</tt> and <tt>factorial</tt> to get you started. Make sure your
+improved version of <tt>library.scm</tt> is included in your tarball
+submission.</p>
+
+<h3>Optional bonus: Support a variable number of arguments</h3>
+
+<p>The following is purely for fun. You are <em>not</em> required to do it!
+Only try this if you are bored or want to impress me :-)</p>
+
+<p>If you wish, you may also implement Scheme's support for variable number
+of arguments.</p>
+
+<p><tt>&gt; (define first (lambda args (car args)))<br />
+&gt; (first (quote a) (quote b) (quote c))<br />
+a<br />
+&gt; (first (quote a) (quote b) (quote c) (quote d) (quote e) (quote f))<br />
+a</tt></p>
+
+<p>The key here is that <tt>args</tt> is a symbol rather than a list of
+symbols. You can consult <a
+href="http://www.schemers.org/Documents/Standards/R5RS/">Scheme R5RS</a> for
+more details.</p>
+
+<p>If you do this optional bonus, then notice it will also let you implement
+the general version of the <tt>for-each</tt> function as defined in <a
+href="http://www.schemers.org/Documents/Standards/R5RS/">Scheme R5RS</a> so
+that the first operand can be a function that takes any number of
+operands:</p>
+
+<p><tt>(for-each</tt> <em>&lt;function&gt; &lt;list1&gt; &lt;list2&gt;
+...</em><tt>)</tt> </p>
+
+<p>Definitely don't try this unless you have everything else in this
+assignment perfectly done!</p>
+
+<h3>Optional bonus: Support the `<tt>let</tt>' syntactic sugar</h3>
+
+<p>If you are finished with all the optional bonuses so far, you can try
+this. Again, the following is purely for fun, and you are <em>not</em>
+expected to do it unless you want to.</p>
+
+<p>You may also wish to implement Scheme's support for the <tt>let</tt>
+syntactic sugar for <tt>lambda</tt>. This can make programming with local
+variables much more convenient and readable. You can also consult <a
+href="http://www.schemers.org/Documents/Standards/R5RS/">Scheme R5RS</a> for
+more details.</p>
+
+<p>The <tt>let</tt> syntax is an alternate syntax for lambda expressions,
+that more closely resembles local (const) variable definitions in other
+languages you're familiar with, like C++. For example, the following two
+expressions have identical meaning:</p>
+
+<p><tt>&gt; ((lambda (x y) (* x y)) 2 3)<br />
+6<br />
+&gt; (let ((x 2) (y 3)) (* x y))<br />
+6</tt></p>
+
+<p>If we rewrite the latter expression with better indentation, it looks like
+this:</p>
+
+<p><tt>(let ((x 2)<br />
+      (y 3))<br />
+  (* x y))<br />
+</tt></p>
+
+<p>which looks much like the roughly equivalent C++ code:</p>
+
+<p><tt>{<br />
+  int x(2);<br />
+  int y(3);<br />
+  return x * y;<br />
+}<br />
+</tt></p>
+
+<p>So in fact, <tt>lambda</tt> not only implements functions, but also
+implements local variables!</p>
+
+<h3>Putting it all together and testing your implementation</h3>
+
+<p>Except for the modified version of <tt>cons.hpp</tt> and the new
+<tt>library.scm</tt>, all other source files in <tt>a4.tar.gz</tt> are
+identical to those from <tt>a3.tar.gz</tt>.</p>
+
+<p>So you should start from your Assignment 3 implementation and extend it,
+replacing only the old <tt>cons.hpp</tt> with the new one. Be careful! You
+still may not break any of the encapsulation rules from Assignment 3.</p>
+<!--
+<p>The a4.tar.gz tarball contains many development test cases to help
+you with testing your implementation.  They are broken into three
+categories: easy cases (<tt>testinput.dev.easy.txt</tt>), general cases
+(<tt>testinput.dev.general.txt</tt>, and exception cases
+(<tt>testinput.dev.exception.txt</tt>). All the correct outputs are also
+given to you for both the easy cases (<tt>testinput.dev.easy.ref.txt</tt>)
+and the general cases (<tt>testinput.dev.general.ref.txt</tt>).</p>
+
+<p>Your submitted implementation will be graded using a similar (but
+different) set of test cases.</p>
+
+<p>In addition, the tarball contains the binary executable of a reference
+solution (compiled for the Linux lab machines you are supposed to
+be using).  You can run this program to see the possible behavior
+of a correct solution.  (Note that your implementation might give
+different results for some error cases, because for all operators
+other than <tt>if</tt>, we have deliberately avoided specifying what
+order the operands are evaluated and checked.  This could lead to
+different errors being discovered first, causing evaluation to be
+prematurely aborted when the exception is thrown.)</p>
+-->
+
+<p>Remember again, the objective of this programming project is for you to
+train your skills, by practicing correct software engineering techniques
+enabling you to build, maintain, and extend a non-trivial piece of
+well-engineered code.</p>
+
+<h3>Important reminders</h3>
+
+<p>You must follow the design approach outlined in this document. Do
+<em>not</em> just implement the required functionality using a different
+design.</p>
+
+<p>This time you <em>must</em> use templates. In this assignment, you are
+expected to make good use of the STL <tt>map</tt> - but neatly, without
+messing up the polymorphic approach you built in Assignment 2.</p>
+
+<p>Remember we are focusing on proper use of encapsulation. So you still
+should <em>not</em> edit the files <tt>parse.hpp</tt>, <tt>parse.cpp</tt>,
+<tt>cons.hpp</tt>, <tt>eval.hpp</tt>, or <tt>main.cpp</tt>. Again, the
+programming assignments are mini-exercises in how multiple programmers are
+supposed to interact and communicate in the real world; these files are
+<em>owned</em> and <em>maintained</em> by the other author(s).</p>
+
+<p>The tarball you turn in will need to contain your new or extended
+implementations of <tt>eval.cpp</tt>, <tt>Cell.hpp</tt>, <tt>Cell.cpp</tt>,
+and <tt>library.scm</tt>.</p>
+
+<p>Depending on your approach, you may or may not need to change the
+<tt>Makefile</tt>. Whether you changed it or not, always make sure you
+include whatever <tt>Makefile</tt> is needed to build your program, when you
+submit assignment. Otherwise, the graders cannot build your program.</p>
+
+<p>You must write the final version of the program on your own. Sophisticated
+plagiarism detection systems are in operation, and they are pretty good at
+catching copying! If you worked in study groups, you must also acknowledge
+your collaborators in the write-up for each problem, whether or not they are
+classmates. Other cases will be dealt with as plagiarism. Re-read the policy
+on the course home page, and note the University's tougher policy this year
+regarding cheating.</p>
+
+<p><strong>Your programming style (how clearly and how well you speak C++) is
+what will be graded. Correct functioning of your program is necessary but not
+sufficient!</strong></p>
+<hr />
+
+<p style="text-align: right"><i>Last updated: 2014.10.30 dekai</i></p>
+</body>
+</html>

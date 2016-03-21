@@ -1,0 +1,151 @@
+/**
+ * \file Cell.cpp
+ *
+ * A partial dummy implementation of the Cell.hpp interface for
+ * example purposes, to support the cons list ADT interface specified
+ * in cons.hpp.  Just barely enough is implemented to allow the parser
+ * to run.  None of the accessor member functions are implemented.
+ *
+ * You need to replace this with a real implementation that actually
+ * builds a tree data structure and then lets the user access the tree.
+ *
+ * You don't necessarily need to understand the ugly details of this
+ * dummy implementation, which you'll throw away anyhow.
+ */
+
+#include "Cell.hpp"
+#include <iomanip>
+// Reminder: cons.hpp expects nil to be defined somewhere.  For this
+// implementation, this is the logical place to define it.
+Cell* const nil = 0;
+
+using namespace std;
+
+Cell::Cell(const int i) 
+{
+  tag_m = type_int;
+  int_m = i;
+}
+
+Cell::Cell(const double d)
+{
+  tag_m = type_double;
+  double_m = d;
+}
+
+Cell::Cell(const char* const s)
+{
+  tag_m = type_symbol;
+  char* str = new char();
+  std::strcpy(str, s);
+  symbol_m = str;
+}
+
+Cell::Cell(Cell* const my_car, Cell* const my_cdr)
+{
+  tag_m = type_conspair;
+  ConsPair* conspair = new ConsPair;
+  conspair->car_m = my_car;
+  conspair->cdr_m = my_cdr;
+  conspair_m = *conspair;
+}
+
+Cell::~Cell()
+{
+  if(is_symbol())
+    delete[] symbol_m;
+}
+
+bool Cell::is_int() const
+{
+  return (this != NULL) && tag_m == type_int ? true : false;
+}
+
+bool Cell::is_double() const
+{
+  return (this != NULL) && tag_m == type_double ? true : false;
+}
+
+bool Cell::is_symbol() const
+{
+  return (this != NULL) && tag_m == type_symbol ? true : false;
+}
+
+bool Cell::is_cons() const
+{
+  return (this != NULL) && tag_m == type_conspair ? true : false;
+}
+
+int Cell::get_int() const
+{
+  if(!is_int()){
+    cerr << "ERROR: at Cell::get_int()\nCell is not an int type \n";
+    exit(1);
+  }
+
+  return int_m;
+}
+
+double Cell::get_double() const
+{
+  if(!is_double()){
+    cerr << "ERROR: at Cell::get_double()\nCell is not a double type\n";
+    exit(1);    
+  }
+
+  return double_m;
+}
+
+std::string Cell::get_symbol() const
+{
+  if(!is_symbol()){
+    cerr << "ERROR: at Cell::get_symbol()\nCell is not a symbol type\n";
+    exit(1);
+  }
+
+  return symbol_m;
+}
+
+Cell* Cell::get_car() const
+{
+  if(!is_cons()){
+    cerr << "ERROR: at Cell::get_car()\nCell is not a Cons Pair type.\n";
+    exit(1);
+  }
+
+  return conspair_m.car_m;
+}
+
+Cell* Cell::get_cdr() const
+{
+  if(!is_cons()){
+    cerr << "ERROR: at Cell::get_cdr()\nCell is not a Cons Pair type.\n";
+      exit(1);
+  }
+
+  return conspair_m.cdr_m;
+}
+
+void Cell::print(ostream& os) const
+{
+  // Destruction is done here, because it's the 
+  // first and last time it ever needs accessing.
+
+  os << "(";
+  if(is_int()) {
+    os << get_int();
+  } else if(is_double()) {
+    // Sets precision value to ensure double is seen as double.
+    os << fixed << setprecision(5);
+    os << get_double();
+  } else if(is_symbol()) {
+    os << get_symbol();
+  } else if(is_cons()){
+    get_car()->print(os);
+    if(get_cdr() != NULL) {
+      os << " ";
+      get_cdr()->print(os);
+    }
+  }
+  os << ")";
+}

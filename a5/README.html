@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+      "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+  <title>COMP2012H Programming Assignment 5, Fall 2014</title>
+  <meta name="generator" content="amaya 9.51, see http://www.w3.org/Amaya/" />
+</head>
+
+<body>
+<h1>COMP2012H Programming Lab Assignment 5, Fall 2014</h1>
+
+<p><strong>Author:</strong> <a href="http://www.cs.ust.hk/~dekai/">Dekai
+Wu</a></p>
+
+<p><strong>Date:</strong> Due in lab by CASS</p>
+
+<p><strong>Download:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a5.tar.gz">http://www.cs.ust.hk/~dekai/2012H/assignments/a5.tar.gz</a></p>
+
+<p><strong>Assignment page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a5/html/">http://www.cs.ust.hk/~dekai/2012H/assignments/a5/html/</a></p>
+
+<p><strong>Course page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/">http://www.cs.ust.hk/~dekai/2012H/</a></p>
+
+<h3>Your assignment</h3>
+
+<p>In this next piece of your programming project, you are assigned to
+maintain and extend the micro-Scheme interpreter you've built in Assignments <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a1/html/">1</a>, <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a2/html/">2</a>, <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a3/html/">3</a>, and <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a4/html/">4</a>,
+specifically to replace the standard <tt>map</tt> you've been using for your
+symbol tables, instead using your own new <tt>bstmap</tt> implementation of a
+dictionary data structure based on binary search trees).</p>
+
+<p>For this assignment, we are giving you almost no new code. The tarball
+a5.tar.gz contains exactly the same files as a3.tar.gz, except for (1) these
+instructions and (2) a new <tt>bstmap.hpp</tt> interface, which you will need
+to implement.</p>
+
+<h3>Step 1: Implement bstmap</h3>
+
+<p>Look at <tt>bstmap.hpp</tt>. This is a subset of the standard C++ library's
+interface for the <tt>map</tt> dictionary data structure. (To keep your life
+simple, we have omitted extra niceties such as reverse iterators and memory
+allocation options.)</p>
+
+<p>Implement a binary search tree, supporting exactly this interface. Since
+this is template based code, all the new code will need to go into the
+<tt>.hpp</tt> file.</p>
+
+<h3>Step 2: Replace all uses of std::map</h3>
+
+<p>You are now in a position to eliminate the use of the standard <tt>map</tt>
+dictionary. Globally replace all uses with your own <tt>bstmap</tt> instead
+throughout your code. Make sure that your entire micro-Scheme implementation
+still does exactly what it used to do.</p>
+
+<h3>Putting it all together and testing your implementation</h3>
+
+<p>Except for your new <tt>bstmap.hpp</tt> and any other supporting files, all
+other source files in <tt>a5.tar.gz</tt> are identical to those from
+<tt>a3.tar.gz</tt>.</p>
+
+<p>So you should start from your Assignment 4 (or Lab Assignment 6)
+implementation and extend it. Be careful! You still may not break any of the
+encapsulation rules from Assignment 3.</p>
+
+<p>Remember again, the objective of this programming project is for you to
+train your skills, by practicing correct software engineering techniques
+enabling you to build, maintain, and extend a non-trivial piece of
+well-engineered code.</p>
+
+<h3>Important reminders</h3>
+
+<p>You must follow the design approach outlined in this document. Do
+<em>not</em> just implement the required functionality using a different
+design.</p>
+
+<p>This time you <em>must</em> use templates. In this assignment, you are
+expected to make good use of the STL <tt>map</tt> interface for your own new
+<tt>bstmap.hpp</tt> - but neatly, without messing up what you already have.</p>
+
+<p>Again, remember we are focusing on proper use of encapsulation. So you still
+should <em>not</em> edit the files <tt>parse.hpp</tt>, <tt>parse.cpp</tt>,
+<tt>cons.hpp</tt>, <tt>eval.hpp</tt>, or <tt>main.cpp</tt>. Again, the
+programming assignments are mini-exercises in how multiple programmers are
+supposed to interact and communicate in the real world; these files are
+<em>owned</em> and <em>maintained</em> by the other author(s).</p>
+
+<p>The tarball you turn in will need to contain your new implementation of
+<tt>bstmap.hpp</tt>.</p>
+
+<p>Depending on your approach, you may or may not need to change the
+<tt>Makefile</tt>. Whether you changed it or not, always make sure you include
+whatever <tt>Makefile</tt> is needed to build your program, when you submit
+assignment. Otherwise, the graders cannot build your program.</p>
+
+<p>You must write the final version of the program on your own. Sophisticated
+plagiarism detection systems are in operation, and they are pretty good at
+catching copying! If you worked in study groups, you must also acknowledge your
+collaborators in the write-up for each problem, whether or not they are
+classmates. Other cases will be dealt with as plagiarism. Re-read the policy on
+the course home page, and note the University's tougher policy this year
+regarding cheating.</p>
+
+<p><strong>Your programming style (how clearly and how well you speak C++) is
+what will be graded. Correct functioning of your program is necessary but not
+sufficient!</strong></p>
+<hr />
+
+<p style="text-align: right"><i>Last updated: 2014.04.24 dekai</i></p>
+</body>
+</html>

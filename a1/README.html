@@ -1,0 +1,750 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+      "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <title>COMP2012H Programming Assignment 1, Fall 2014</title>
+</head>
+
+<body>
+<h1>COMP2012H Programming Assignment 1, Fall 2014</h1>
+
+<p><strong>Author:</strong> <a href="http://www.cs.ust.hk/~dekai/">Dekai
+Wu</a></p>
+
+<p><strong>Date:</strong> Due 2014.09.26 at 23:00 by CASS</p>
+
+<p><strong>Download:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a1.tar.gz">http://www.cs.ust.hk/~dekai/2012H/assignments/a1.tar.gz</a></p>
+
+<p><strong>Assignment page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a1/html/">http://www.cs.ust.hk/~dekai/2012H/assignments/a1/html/</a></p>
+
+<p><strong>Course page:</strong> <a
+href="http://www.cs.ust.hk/~dekai/2012H/">http://www.cs.ust.hk/~dekai/2012H/</a></p>
+
+<h3>Your assignment</h3>
+
+<p>You've been assigned to write an <em>expression evaluator</em>. The input
+expressions to your evaluator will be strings in a traditional computer
+science notation known as <a
+href="http://en.wikipedia.org/wiki/S-expression"><em>s-expressions</em></a>,
+which is a prefix notation that is fully parenthesized to avoid ambiguity,
+for example:</p>
+
+<p><tt>(+ 2 3 4 5)</tt><br />
+<tt>(+ 2 3.5)</tt><br />
+<tt>(+ 2)</tt><br />
+<tt>(+)</tt><br />
+<tt>(+ (+ -2 5 -1) 3.5)</tt><br />
+<tt>(ceiling 4.7)</tt><br />
+<tt>(ceiling 4.0)</tt><br />
+<tt>(ceiling -4.7)</tt><br />
+<tt>(if 5 7 8.3)</tt><br />
+<tt>(if 0 7 8.3)</tt><br />
+<tt>(if (+ 2 3) (ceiling 6.1) (+ 4 2.3 2))</tt><br />
+<tt>(if (+ 2 -2) (ceiling 6.1) (+ 4 2.3 2))</tt><br />
+<tt>(+ 1 (if (+ 2 -2) (ceiling 6.1) (+ 4 2.3 2)))</tt></p>
+
+<p>Notice that you're dealing with three distinct types of atomic elements in
+these expressions: <em>ints</em>, <em>doubles</em>, and <em>symbols</em>. The
+<em>ints</em> and <em>doubles</em> are two different types of literals used
+as operands. In addition, the operator <em>symbols</em> are functions whose
+symbol names are <tt>+</tt>, <tt>if</tt>, and <tt>ceiling</tt>.</p>
+
+<p>The <tt>+</tt> operator accepts any number of operands to be added. The
+operands can be any mix of ints or doubles. Like in C or C++, the return type
+should be double if any of the operands are double, and int otherwise. If no
+operands are given, then the result should be zero which is the identity
+value for addition.</p>
+
+<p>The <tt>ceiling</tt> operator requires exactly one operand, which must be
+a double. It returns an int which is the smallest integer that is greater or
+equal to the operand.</p>
+
+<p>The <tt>if</tt> operator requires either two or three operands. It first
+checks if the first operand is non-zero. If so, then it should return the
+result of evaluating the second operand. Otherwise, it should return the
+result of evaluating the third operand (if only two operands were given, then
+the return value is undefined, or in other words, you may return anything you
+like).</p>
+
+<p>Also notice that operands do not have to be literals. They also can
+recursively be sub-expressions.</p>
+
+<p>Given such an input expression, your evaluator should return the result of
+evaluating the expression, for example:</p>
+
+<p><tt>(+ 2 3 4 5)</tt> should return the int <tt>14</tt><br />
+<tt>(+ 2 3.5)</tt> should return the double <tt>5.5</tt><br />
+<tt>(+ 2)</tt> should return the int <tt>2</tt><br />
+<tt>(+)</tt> should return the int <tt>0</tt><br />
+<tt>(+ (+ -2 5 -1) 3.5)</tt> should return the double <tt>5.5</tt><br />
+<tt>(ceiling 4.7)</tt> should return the int <tt>5</tt><br />
+<tt>(ceiling 4.0)</tt> should return the int <tt>4</tt><br />
+<tt>(ceiling -4.7)</tt> should return the int <tt>-4</tt><br />
+<tt>(if 5 7 8.3)</tt> should return the int <tt>7</tt><br />
+<tt>(if 0 7 8.3)</tt> should return the double <tt>8.3</tt><br />
+<tt>(if (+ 2 3) (ceiling 6.1) (+ 4 2.3 2))</tt> should return the int
+<tt>7</tt><br />
+<tt>(if (+ 2 -2) (ceiling 6.1) (+ 4 2.3 2))</tt> should return the double
+<tt>8.3</tt><br />
+<tt>(+ 1 (if (+ 2 -2) (ceiling 6.1) (+ 4 2.3 2)))</tt> should return the
+double <tt>9.3</tt></p>
+
+<p>Your expression evaluator should proceed in two independent stages:</p>
+<ol>
+  <li><em>Parse</em> the input string to analyze and understand its
+    structure. The parser should return a tree data structure in which it
+    records (a) the nested structure of the parenthesized expressions and
+    sub-expressions, and (b) the types of all the elements in the
+  expression.</li>
+  <li><em>Evaluate</em> the expression stored in the tree data structure, by
+    doing a depth-first traversal. The evaluator should return the value
+    resulting from evaluating the entire expression.</li>
+</ol>
+
+<p>If there is any error in the types or number of operands in the input
+expression, your expression evaluator should print the string <tt>ERROR</tt>
+on standard error (<tt>cerr &lt;&lt; "ERROR"</tt>), and call <tt>exit(1)</tt>
+to terminate program execution. Otherwise, for this assignment, you may
+assume that you will only be tested with input expressions that can safely be
+parsed.</p>
+
+<h3>Borrowing someone else's expression parser</h3>
+
+<p>Thankfully, you don't have to write a parser. You've already found a
+parser written by someone else, capable of reading and understanding strings
+in s-expression format. Download the package at the top of this page,
+then:</p>
+
+<p><tt>$ tar xzf a1.tar.gz</tt> <i>// unpack the archive</i><br />
+<tt>$ cd a1</tt><br />
+<tt>$ make</tt><br />
+<tt>g++ -c main.cpp</tt><br />
+<tt>g++ -c parse.cpp</tt><br />
+<tt>g++ -c eval.cpp</tt><br />
+<tt>g++ -c Cell.cpp</tt><br />
+<tt>g++ -DOP_ASSIGN -o main main.o parse.o eval.o Cell.o -lm</tt><br />
+<tt>$ main testinput.txt</tt></p>
+
+<p>You will see the parser's test program run. You can also run the program
+in interactive mode by typing <tt>main</tt> without any command-line
+arguments. In interactive mode, the program will prompt you to type in an
+expression, and then it'll print the expression back to you, and repeat until
+you type control-D to generate an EOF (end-of-file).</p>
+
+<p>You wish to re-use this code for parsing s-expressions. The only problem
+is that this parser, as originally written, does not actually build a tree
+data structure. So you will need to modify the code to suit the purposes of
+this assignment.</p>
+
+<p>But you are lucky that the author of the parser encapsulated his code
+quite neatly. You will not even have to touch his parser code (which is in
+<tt>parse.hpp</tt> and <tt>parse.cpp</tt>). As the parser analyzes the input
+string, it needs to call various operations to record the nested tree
+structure that it is finding in the s-expression. The author wisely
+encapsulated all these operations and global constants in a separate header
+file <tt>cons.hpp</tt> that keeps all the concrete tree implementation
+details hidden from the parser:</p>
+<ul>
+  <li><tt>Cell* make_int(const int i)</tt> returns a newly constructed int
+    cell, i.e., a leaf node initialized to hold the int value <tt>i</tt></li>
+  <li><tt>Cell* make_double(const double d)</tt> returns a newly constructed
+    double cell, i.e., a leaf node initialized to hold the double value
+    <tt>d</tt></li>
+  <li><tt>Cell* make_symbol(const char* const s)</tt> returns a newly
+    constructed symbol cell, i.e., a leaf node initialized to hold the symbol
+    name <tt>s</tt></li>
+  <li><tt>Cell* cons(Cell* const my_car, Cell* const my_cdr)</tt> returns a
+    newly constructed cons cell, i.e., an internal node initialized to hold
+    the two pointers <tt>my_car</tt> and <tt>my_cdr</tt></li>
+</ul>
+<ul>
+  <li><tt>bool intp(Cell* const c)</tt> returns true iff the cell pointed to
+    by <tt>c</tt> is an int cell</li>
+  <li><tt>bool doublep(Cell* const c)</tt> returns true iff the cell pointed
+    to by <tt>c</tt> is a double cell</li>
+  <li><tt>bool symbolp(Cell* const c)</tt> returns true iff the cell pointed
+    to by <tt>c</tt> is a symbol cell</li>
+  <li><tt>bool nullp(Cell* const c)</tt> returns true iff <tt>c</tt> is is
+    the null pointer (which is equivalent to the empty list)</li>
+  <li><tt>bool listp(Cell* const c)</tt> returns true iff the cell pointed to
+    by <tt>c</tt> is a cons cell, or if <tt>c</tt> is the null pointer (i.e.,
+    if c points to an empty list)</li>
+</ul>
+<ul>
+  <li><tt>extern Cell* const nil</tt> holds the value of a null pointer,
+    which we consider equivalent to an empty list</li>
+</ul>
+<ul>
+  <li><tt>int get_int(Cell* const c)</tt> returns the value in the int cell
+    pointed to by <tt>c</tt> (error if <tt>c</tt> is not an int cell)</li>
+  <li><tt>double get_double(Cell* const c)</tt> returns the value in the
+    double cell pointed to by <tt>c</tt> (error if <tt>c</tt> is not a double
+    cell)</li>
+  <li><tt>string get_symbol(Cell* const c)</tt> returns the value in the
+    string cell pointed to by <tt>c</tt> (error if <tt>c</tt> is not a string
+    cell)</li>
+  <li><tt>Cell* car(Cell* const c)</tt> returns the car pointer of the cons
+    cell pointed to by <tt>c</tt> (error if <tt>c</tt> is not a cons
+  cell)</li>
+  <li><tt>Cell* cdr(Cell* const c)</tt> returns the cdr pointer of the cons
+    cell pointed to by <tt>c</tt> (error if <tt>c</tt> is not a cons
+  cell)</li>
+</ul>
+<ul>
+  <li><tt>ostream&amp; operator&lt;&lt;(ostream&amp; os, Cell* const c)</tt>
+    prints the cons cell pointed to by <tt>c</tt> to the output stream
+    <tt>os</tt>, using s-expression notation</li>
+</ul>
+
+<p>Notice that even though these are just ordinary functions (not member
+functions of a class), nevertheless this set of functions constitutes an
+interface for an abstract data type; we'll discuss more background on this
+particular ADT below. The way that <tt>cons.hpp</tt> specifies the ADT
+interface is nice because it makes very few assumptions about how the
+concrete implementation might be done. (Good object-oriented programming
+style does <em>not</em> necessarily require using classes! For example, see
+Scott Myer's article <a href="http://www.ddj.com/dept/cpp/184401197">How
+Non-Member Functions Improve Encapsulation</a>.)</p>
+
+<p>The file <tt>cons.hpp</tt> that came with the parser just connects all the
+functions to a dummy example implementation of the ADT that makes use of a
+super-simple, incomplete <tt>Cell</tt> class probably written by someone else
+(found in <tt>Cell.hpp</tt> and <tt>Cell.cpp</tt>). As mentioned earlier,
+this dummy example implementation isn't actually capable of building a tree
+data structure with pointers and nodes. Instead, it just records the
+sub-trees using a string encoding, rather than a tree data structure. Most of
+the functions needed by <tt>cons.hpp</tt> aren't even working yet in the
+dummy <tt>Cell</tt> class, since the basic parser can be run without the
+accessor functions <tt>intp</tt>, <tt>doublep</tt>, <tt>symbolp</tt>,
+<tt>nullp</tt>, <tt>listp</tt>, <tt>get_int</tt>, <tt>get_double</tt>,
+<tt>get_symbol</tt>, <tt>car</tt> and <tt>cdr</tt>. You can build trees
+without using these accessor functions, although it's not terribly useful
+without the accessor functions since nobody can access the tree you've built.
+(And in fact, the string encoding that's used is actually just s-expression
+notation again! Of course this circular set-up is not terribly useful,
+either; it's just a partial example to show you how to work with the
+<tt>cons.hpp</tt> ADT interface by connecting it to a concrete implementation
+in <tt>Cell.hpp</tt>.)</p>
+
+<p>So the parser author (me) and the tree data structure author (you) both
+have interfaces encapsulating our code, helping us to divide and conquer the
+work in <em>both</em> directions:</p>
+<ul>
+  <li><tt>parse.hpp</tt> is the interface that tells you <em>what</em> the
+    parser can do, while hiding the dirty implementation details of
+    <em>how</em> the parser works (in my <tt>parse.cpp</tt> which your tree
+    data structure doesn't get to see).</li>
+  <li><tt>cons.hpp</tt> is the interface that tells me what the tree data
+    structure can do, while hiding the dirty implementation details of how
+    the tree data structure works (in your <tt>Cons.hpp</tt> and
+    <tt>Cons.cpp</tt> which my parser doesn't get to see).</li>
+</ul>
+
+<h3>Adapting the parser to this assignment</h3>
+
+<p>You realize that the cleanest and easiest way to proceed is to leave
+<tt>cons.hpp</tt> exactly the way it is. That way, you only need to replace
+the <tt>Cell</tt> class with your own implementation. (This is good software
+engineering at work, helping you through proper encapsulation!)</p>
+
+<p>You will also stick to re-using the existing interface of the
+<tt>Cell</tt> class when implementing your own version of <tt>Cell</tt>; you
+won't delete or rename any functions or member functions, to avoid breaking
+the parser. (However, you might wish to add some new functions and member
+functions, to support manipulating and accessing the tree data structure you
+build.)</p>
+
+<p>Looking at the public interface specified by the <tt>Cell</tt> class in
+<tt>Cell.hpp</tt>, you see there are a few constructors that the parser's
+<tt>cons.hpp</tt> will expect your own implementation to provide:</p>
+<ul>
+  <li><tt>Cell(const int i)</tt> constructs an int cell, i.e., a leaf node
+    that holds the int value <tt>i</tt></li>
+  <li><tt>Cell(const double d)</tt> constructs a double cell, i.e., a leaf
+    node that holds a double value <tt>d</tt></li>
+  <li><tt>Cell(const char* const s)</tt> constructs a symbol cell, i.e., a
+    leaf node that holds the symbol name <tt>s</tt></li>
+  <li><tt>Cell(Cell* const my_car, Cell* const my_cdr)</tt> constructs a cons
+    cell, i.e., an internal node that holds two pointers <tt>my_car</tt> and
+    <tt>my_cdr</tt></li>
+</ul>
+
+<p>Other than these constructors, you'll need to implement these public
+member functions:</p>
+<ul>
+  <li><tt>bool is_int() const</tt> returns true iff <tt>this</tt> is an int
+    cell</li>
+  <li><tt>bool is_double() const</tt> returns true iff <tt>this</tt> is a
+    double cell</li>
+  <li><tt>bool is_symbol() const</tt> returns true iff <tt>this</tt> is a
+    symbol cell</li>
+  <li><tt>bool is_cons() const</tt> returns true iff <tt>this</tt> is a cons
+    cell</li>
+</ul>
+<ul>
+  <li><tt>int get_int() const</tt> returns the value in this int cell (error
+    if <tt>this</tt> is not an int cell)</li>
+  <li><tt>double get_double() const</tt> returns the value in this double
+    cell (error if <tt>this</tt> is not a double cell)</li>
+  <li><tt>string get_symbol() const</tt> returns the symbol name in this
+    symbol cell (error if <tt>this</tt> is not a symbol cell)</li>
+  <li><tt>Cell* get_car() const</tt> returns the car pointer of this cons
+    cell (error if <tt>this</tt> is not a cons cell)</li>
+  <li><tt>Cell* get_cdr() const</tt> returns the cdr pointer of this cons
+    cell (error if <tt>this</tt> is not a cons cell)</li>
+</ul>
+<ul>
+  <li><tt>void print(ostream&amp; os) const</tt> prints the subtree rooted at
+    this cell, in s-expression notation</li>
+</ul>
+
+<p>In <tt>Cell.cpp</tt> you'll also need to define this global constant, that
+was declared as an extern in <tt>cons.hpp</tt> (and in <tt>Cell.hpp</tt>
+too):</p>
+<ul>
+  <li><tt>Cell* const nil</tt> is the value for a null pointer, which we
+    consider equivalent to an empty list.</li>
+</ul>
+
+<p>Hint: depending on your approach, you could choose either to implement
+<tt>nil</tt> as the C++ <tt>NULL</tt> value (the pointer to address zero), or
+as some unique dummy <tt>Cell*</tt> value (known as a <em>sentinel</em>, as
+you should learn in COMP171). If you don't know what this means yet, then
+don't worry and just implement <tt>nil</tt> as the C++ <tt>NULL</tt> value,
+exactly as in the dummy version of <tt>Cell.cpp</tt> that we give you. The
+following sections discuss how <tt>nil</tt> is used.</p>
+
+<h3>Some background on the cons list ADT</h3>
+
+<p>The abstract data type (ADT) that the parser author chose to use is a
+traditional <a
+href="http://en.wikipedia.org/wiki/Lisp_programming_language#Conses_and_lists"><em>cons
+list</em></a> ADT dating back to around 1958. This ADT only requires a nil or
+NULL constant representing an empty list (which can be written <tt>()</tt>
+using s-expression notation), plus only three essential core operations <a
+href="http://en.wikipedia.org/wiki/Cons"><em>cons</em></a>, <a
+href="http://en.wikipedia.org/wiki/Car_and_cdr"><em>car</em></a> and <a
+href="http://en.wikipedia.org/wiki/Car_and_cdr"><em>cdr</em></a>:</p>
+<ul>
+  <li><a href="http://en.wikipedia.org/wiki/Cons"><em>cons</em></a>
+    constructs a new list with a given car value and cdr list. For example: 
+    <ul>
+      <li><tt>cons(1, nil)</tt> returns <tt>(1)</tt></li>
+      <li><tt>cons(1, cons(2, nil))</tt> returns <tt>(1 2)</tt></li>
+      <li><tt>cons(1, cons(2, cons(3, nil)))</tt> returns <tt>(1 2
+      3)</tt></li>
+      <li><tt>cons(cons(1, cons(2, nil)), cons(3, nil))</tt> returns <tt>((1
+        2) 3)</tt></li>
+    </ul>
+  </li>
+  <li><a href="http://en.wikipedia.org/wiki/Car_and_cdr"><em>car</em></a>
+    gives the value of the head node of the list. For example: 
+    <ul>
+      <li><tt>car(cons(1, nil))</tt> returns <tt>1</tt></li>
+      <li><tt>car(cons(cons(1, nil), nil))</tt> returns <tt>(1)</tt></li>
+      <li><tt>car(cons(cons(1, cons(2, nil)), cons(3, nil)))</tt> returns
+        <tt>(1 2)</tt></li>
+    </ul>
+  </li>
+  <li><a href="http://en.wikipedia.org/wiki/Car_and_cdr"><em>cdr</em></a>
+    (pronounced "could-er" or "cudder") gives the list after the head node.
+    For example: 
+    <ul>
+      <li><tt>cdr(cons(1, cons(2, cons(3, nil))))</tt> returns <tt>(2
+      3)</tt></li>
+      <li><tt>cdr(cons(cons(1, cons(2, nil)), cons(3, nil)))</tt> returns
+        <tt>(3)</tt></li>
+    </ul>
+  </li>
+</ul>
+
+<p>Building up large trees this way can get a bit tedious, so in practice
+typically people also define equivalent shorthand functions. Mathematically
+speaking, such functions are not really necessary, and exist only for the
+sake of convenience. For example,</p>
+<ul>
+  <li><a
+    href="http://en.wikipedia.org/wiki/Lisp_programming_language#Conses_and_lists"><em>list</em></a>
+    builds a new list containing the operands. For example: 
+    <ul>
+      <li><tt>list(1)</tt> is shorthand for <tt>cons(1, nil)</tt> and returns
+        <tt>(1)</tt></li>
+      <li><tt>list(1, 2, 3)</tt> is shorthand for <tt>cons(1, cons(2, cons(3,
+        nil)))</tt> and returns <tt>(1 2 3)</tt></li>
+      <li><tt>list(list(1, 2), 3)</tt> is shorthand for <tt>cons(cons(1,
+        cons(2, nil)), cons(3, nil))</tt> and returns <tt>((1 2) 3)</tt></li>
+    </ul>
+  </li>
+</ul>
+
+<p>To keep your life simple, you are <em>not</em> required to implement
+<tt>list</tt> even though we'll use it in written examples later.</p>
+
+<h3>Implementing the cons list ADT</h3>
+
+<p>How do you implement the cons list ADT? In fact there exist many different
+implement approaches.</p>
+
+<p>You've decided to use the most traditional approach, which is to
+extend your singly linked list data structure from <a
+href="http://www.cs.ust.hk/~dekai/2012H/assignments/a0/html/">Assignment 0</a>. This is the most natural
+and intuitively obvious way to implement the cons list ADT. As explained in
+<a
+href="http://en.wikipedia.org/wiki/Scheme_programming_language#Lists">Wikipedia</a>:</p>
+
+<p>Specifically, each node in the linked list is a cons cell, also called a
+pair. As the name pair implies, a cons cell consists of two values: the first
+one is the <tt>car</tt>, and the second is the <tt>cdr</tt>. For <tt>list(1,
+2, 3)</tt>, there are three cons cells, or pairs. The first cons cell has the
+number 1 in the first slot, and a pointer to the second cons cell in the
+second. The second cons cell has the number 2 in the first slot, and a
+pointer to the third cons cell in the second slot. The third cons cell has
+the number 3 in the first slot and a NULL constant in the second slot. The
+NULL constant is usually represented by <tt>()</tt>. The cons function
+constructs these cons cells, which is why <tt>cons(1, list(2, 3))</tt> gives
+the list <tt>(1 2 3)</tt>. <!-- If both of the arguments are not lists, then a pair is created,
+  usually represented with a dot. For example, (cons 1 2) gives (1 . 2),
+  where the cons cell consists of 1 and 2 in its slots instead of a pointer
+  to another cons cell in its second slot. -->
+ </p>
+
+<p>Here's a picture of the linked list to hold <tt>((1 2) 3)</tt>, using
+what's known as box-and-pointer notation. Notice how it naturally matches the
+exact structure of <tt>cons(cons(1, cons(2, nil)), cons(3, nil))</tt>.
+There's one box for each <tt>cons</tt>, and two <tt>nil</tt> pointers.</p>
+<img src="boxandpointer.jpg" /> 
+
+<p>In Assignment 0, cells could hold three kinds of values, but here, they can hold four kinds of values: int, double,
+symbol, and cons. You will continue to use a tagged union approach,
+but in Assignment 1 we will move from C to C++: instead of
+old-fashioned simple structs, we'll use classes that
+can contain member types and functions:</p>
+<pre>class Cell {
+  // ...
+  enum TypeTag {type_int, type_double, type_symbol, type_conspair};
+  TypeTag tag_m;
+  union {
+    int int_m;
+    double double_m; 
+    char* symbol_m;
+    ConsPair conspair_m;
+  };
+};</pre>
+
+<p>We move the definition <tt>TypeTag</tt>
+into the scope of <tt>Cell</tt>, taking advantage of C++'s classes to
+better encapsulate the symbols we're defining, to be as closely
+associated as possible with the classes they're used with.</p>
+
+<h3>Evaluating the expression tree</h3>
+
+<p>After you've gotten the parser to store the expression into your real tree
+data structure (your concrete implementation of the cons list ADT), now you
+need to write a function that evaluates it.</p>
+
+<p>To do this, you merely need to perform a depth-first traversal starting
+from the root. As you complete each subtree, the evaluator should return the
+value resulting from evaluating the sub-expression stored in that subtree. By
+the time you finish the entire traversal, you will be back at the root---so
+the evaluator should return the value resulting from evaluating the entire
+expression.</p>
+
+<p>The problem is: what is the <em>type</em> that should be returned by your
+evaluator function?</p>
+
+<p>It would seem that this depends on the type of the operands---remember,
+from the introduction:</p>
+
+<p><tt>(+ 2 3 4 5)</tt> should return the int <tt>14</tt><br />
+<tt>(+ 2 3.5)</tt> should return the double <tt>5.5</tt><br />
+<tt>(+ (+ 3 -1) 3.5)</tt> should return the double <tt>5.5</tt><br />
+<tt>(if 5 7 8.3)</tt> should return the int <tt>7</tt><br />
+<tt>(if 0 7 8.3)</tt> should return the double <tt>8.3</tt><br />
+<tt>(if (+ 2 3) (+ 4 3) (+ 6 2.3))</tt> should return the int <tt>7</tt><br />
+<tt>(if (+ 2 -2) (+ 4 3) (+ 6 2.3))</tt> should return the double
+<tt>8.3</tt><br />
+<tt>(+ 1 (if (+ 2 -2) (+ 4 3) (+ 6 2.3)))</tt> should return the double
+<tt>9.3</tt><br />
+<tt>(ceiling 4.7)</tt> should return the int <tt>5</tt><br />
+<tt>(ceiling -4.7)</tt> should return the int <tt>-4</tt></p>
+
+<p>But C++ won't let us write a function that returns different types
+depending on the result!</p>
+
+<p>To solve this problem, we'll re-use your <tt>Cell</tt> implementation.
+Remember, <tt>Cell</tt> already gives us a way to store different types of
+values in the same class type, by using a tagged union. So your function
+evaluator should return a <tt>Cell*</tt> that points to a <tt>Cell</tt>
+holding the value resulting from evaluating the expression:</p>
+<ul>
+  <li><tt>Cell* eval(Cell* const c)</tt> returns the value resulting from
+    evaluating the expression tree whose root is pointed to by <tt>c</tt>
+    (error if <tt>c</tt> is not a well-formed expression)</li>
+</ul>
+
+<p>You'll find this declaration in the header file <tt>eval.hpp</tt>, which
+you should not alter. Place your implementation for the evaluator in your own
+<tt>eval.cpp</tt> file, replacing the dummy <tt>eval.cpp</tt> that came with
+the parser.</p>
+
+<p>When you're implementing the <tt>eval</tt> function, think carefully about
+all the different cases (what type are the operands?) The <tt>+</tt> and
+<tt>if</tt> functions can be applied to any combination of the numeric int
+and double types, but what is the return type? The <tt>ceiling</tt> function
+can be applied to double types, but not int types. No function can be applied
+to the symbol type (yet).</p>
+
+<h3>Putting it all together</h3>
+
+<p>Notice that the dummy example implementation of <tt>eval.cpp</tt> that you
+have been given doesn't do anything useful. It just returns the same
+<tt>Cell*</tt> that was passed to it. That's why running the <tt>main</tt>
+program prints out the same s-expression that you give it as input. After
+you've correctly replaced <tt>eval.cpp</tt> with your real evaluator
+implementation, running the same <tt>main</tt> program will instead print out
+the result of evaluation---which is exactly what we want!</p>
+
+<p>So you don't need to touch <tt>main.cpp</tt> at all. Good encapsulation at
+work, again!</p>
+
+<h3>Important reminders</h3>
+
+<p>You must follow the design approach outlined in this document. Do
+<em>not</em> just implement the required functionality using a different
+design. Your proper <em>software engineering</em> skills are being graded.</p>
+
+<p>Do <em>not</em> use virtual functions or templates in this assignment.
+This assignment is about static OO support in C++. (You'll get a chance to
+use dynamic OO polymorphism and templates in the following assignments...)</p>
+
+<p>Do <em>not</em> edit the files <tt>parse.hpp</tt>, <tt>parse.cpp</tt>,
+<tt>cons.hpp</tt>, <tt>eval.hpp</tt>, or <tt>main.cpp</tt>. The programming
+assignments are mini-exercises in how multiple programmers are supposed to
+interact and communicate in the real world; these files are <em>owned</em>
+and <em>maintained</em> by the other author(s).</p>
+
+<p>You will need to add things to <tt>Cell.hpp</tt>, but do <em>not</em>
+delete anything from it. Replace the files <tt>Cell.cpp</tt> and
+<tt>eval.cpp</tt> with your own implementations. Depending on your approach,
+you may or may not also wish to add more files.</p>
+
+<p>Depending on your approach, you may or may not need to change the
+<tt>Makefile</tt> (as in Lab 1). Whether you changed it or not, always make
+sure you include whatever <tt>Makefile</tt> is needed to build your program,
+when you submit the assignment. Otherwise, the graders cannot build your
+program.</p>
+
+<p>Documentation is also a critically important part of your software
+engineering. Your use of <tt>doxygen</tt> comments, as in Lab 3, will be
+graded.</p>
+
+<p>You must write the final version of the program on your own. Sophisticated
+plagiarism detection systems are in operation, and they are pretty good at
+catching copying! If you worked in study groups, you must also acknowledge
+your collaborators in the write-up for each problem, whether or not they are
+classmates. Other cases will be dealt with as plagiarism. Re-read the policy
+on the course home page, and note the University's tougher policy this year
+regarding cheating.</p>
+
+<p>Your programming style (how clearly and how well you speak C++) is what
+will be graded. Correct functioning of your program is necessary but not
+sufficient!</p>
+
+<h3>Grading scheme</h3>
+
+<p>Below is the <strong>grading sheet</strong> that will be used by the
+graders, so you can see what software engineering skills they're checking you
+for.</p>
+
+<p>Your grade consists of two parts: (1) <strong>program
+correctness</strong>, worth 60%. and (2) <strong>style &amp; design</strong>,
+worth 40%. Points are deducted for the error types as shown (but the minimum
+you can get for each part is 0%, so you cannot get negative point scores on
+either program correctness or style &amp; design).</p>
+
+<p>To assist you with your own testing and debugging, examples of the simple,
+general, and invalid input test cases (similar to the real ones that will be
+used by the graders) are found in the files <tt>testinput_simple.txt</tt>,
+<tt>testinput_general.txt</tt>, and <tt>testinput_invalid.txt</tt>,
+respectively. The correct results for the valid cases are found in the files
+<tt>testreference_simple.txt</tt> and <tt>testreference_general.txt</tt>.</p>
+
+<table border="1">
+    <tr>
+      <td><strong>Name:</strong> </td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><strong>Email:</strong> </td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><strong>Submission Time: </strong></td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><strong>Late Penalty:</strong> </td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td><strong>Total Pts: </strong></td>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ 100 Pts</td>
+    </tr>
+</table>
+
+<p></p>
+
+<table border="2">
+    <tr>
+      <td colspan="3"><strong>PROGRAM CORRECTNESS</strong> (Maximum: 60 Pts;
+        Minimum: 0 Pts)</td>
+    </tr>
+    <tr>
+      <td><em>Description</em></td>
+      <td><em>Pts</em></td>
+      <td><em>Notes</em></td>
+    </tr>
+    <tr>
+      <td>Base Pts. (+60 Pts)</td>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Program fails to compile. (-60 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Cell class fails (link against reference solution and run tests)
+        (-60 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>eval() does not pass simple test cases. (-15 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>eval() does not pass general test cases. (-15 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>eval() does not handle semantically invalid cases. (-15 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Does print() print s-expressions properly? (-20 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Program prints irrelevant information. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Encapsulation (Min -40 Pts) 
+        <ul>
+          <li>Edited parse.hpp, parse.cpp, cons.hpp, eval.hpp, or main.cpp.
+            (-40 Pts)</li>
+          <li>Accessed functions in the Cell class directly. (-30 Pts)</li>
+        </ul>
+      </td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>BONUS: Proper destruction (+10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>BONUS: Detailed error messages (+5 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>BONUS: Expressions like <tt>((if 1 + ceiling) 3.1)</tt> (+5 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td colspan="2"><strong>STYLE &amp; DESIGN</strong> (Maximum: 40 Pts;
+        Minimum: -100 Pts)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><em>Description</em></td>
+      <td><em>Pts</em></td>
+      <td><em>Notes</em></td>
+    </tr>
+    <tr>
+      <td>Base Pts. (+40 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>No Doxygen output. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Inadequate function level documentation. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Inadequate algorithm level (i.e. within function) documentation.
+        (-15 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Inadequate variable level documentation (i.e. meaning of the
+        variable). (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Poor readability of function and variable names. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Improper use of indentation and space. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Inconsistent naming of functions and variables. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Incorrect &lsquo;const&rsquo; usage. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Improper private data encapsulation. (-10 Pts)</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+</table>
+<hr />
+
+<p style="text-align: right"><i>Last updated: 2014.09.16 dekai</i></p>
+</body>
+</html>
